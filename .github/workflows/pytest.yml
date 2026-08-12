@@ -116,8 +116,8 @@ jobs:
 
       - name: "🚀 Execute Pytest Suite (Parallel via pytest-xdist)"
         run: |
-          # Jalankan pengujian secara paralel menggunakan pytest.py
-          pytest pytest.py \
+          # Jalankan pengujian secara paralel menggunakan test_suite.py
+          pytest test_suite.py \
             -n auto \
             --timeout=60 \
             --html=reports/test_report.html \
