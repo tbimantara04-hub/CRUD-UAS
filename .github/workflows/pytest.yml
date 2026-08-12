@@ -22,7 +22,7 @@ env:
   DB_NAME: damncrud
   DB_USER: root
   DB_PASSWORD: ""
-  BASE_URL: "http://localhost/DamnCRUD"
+  BASE_URL: "http://localhost"
 
 jobs:
   automated-tests:
@@ -76,30 +76,11 @@ jobs:
           google-chrome --version
           chromedriver --version
 
-      - name: "🖥️ Setup Apache & Deploy PHP App"
+      - name: "🖥️ Start PHP Built-in Web Server"
         run: |
-          sudo apt-get install -y apache2 libapache2-mod-php8.1 php8.1-mysql
-          sudo a2enmod rewrite
-
-          sudo mkdir -p ${{ env.APP_DIR }}
-          sudo cp -r . ${{ env.APP_DIR }}
-          sudo chown -R www-data:www-data ${{ env.APP_DIR }}
-          sudo chmod -R 755 ${{ env.APP_DIR }}
-
-          sudo bash -c "cat > /etc/apache2/sites-available/damncrud.conf << 'EOF'
-          <VirtualHost *:80>
-              ServerName localhost
-              DocumentRoot /var/www/html/DamnCRUD
-              <Directory /var/www/html/DamnCRUD>
-                  AllowOverride All
-                  Require all granted
-              </Directory>
-          </VirtualHost>
-          EOF"
-
-          sudo a2ensite damncrud.conf
-          sudo a2dissite 000-default.conf
-          sudo systemctl restart apache2
+          # Jalankan PHP server di background pada port 80
+          sudo php -S 127.0.0.1:80 -t . &
+          sleep 2
 
       - name: "🗄️ Initialize MySQL Database"
         run: |
@@ -126,11 +107,10 @@ jobs:
       - name: "🔍 Verify Application Accessibility"
         run: |
           sleep 3
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost/DamnCRUD/login.php)
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost/login.php)
           echo "HTTP Status Code: $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 302 ]; then
             echo "❌ GAGAL: Aplikasi tidak dapat diakses. Status: $HTTP_STATUS"
-            sudo cat /var/log/apache2/error.log | tail -20
             exit 1
           fi
 

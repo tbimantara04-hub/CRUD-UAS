@@ -19,11 +19,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
+import os
 
 # =============================================================================
 # KONFIGURASI GLOBAL
 # =============================================================================
-BASE_URL = "http://localhost/DamnCRUD"
+BASE_URL = os.getenv("BASE_URL", "http://localhost/DamnCRUD")
 LOGIN_URL = f"{BASE_URL}/login.php"
 CREATE_URL = f"{BASE_URL}/create.php"
 READ_URL = f"{BASE_URL}/index.php"
