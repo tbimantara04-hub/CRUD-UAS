@@ -1,14 +1,14 @@
 <?php
 
 function pdo_connect(){
-    $DATABASE_HOST = getenv('DB_HOST') ?: 'localhost';
+    $DATABASE_HOST = getenv('DB_HOST') ?: '127.0.0.1';
     $DATABASE_USER = getenv('DB_USER') ?: 'root';
     $DATABASE_PASS = getenv('DB_PASS') ?: '';
     $DATABASE_NAME = getenv('DB_NAME') ?: 'damncrud';
     try {
         return new PDO('mysql:host=' . $DATABASE_HOST . ';dbname=' . $DATABASE_NAME, $DATABASE_USER, $DATABASE_PASS);
     } catch (PDOException $exception) {
-        die ('Failed to connect to database!');
+        die ('Failed to connect to database: ' . $exception->getMessage());
     }
 }
 

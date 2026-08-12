@@ -11,6 +11,8 @@
 
 import pytest
 import time
+import uuid
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -19,7 +21,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
-import os
 
 # =============================================================================
 # KONFIGURASI GLOBAL
@@ -30,15 +31,13 @@ CREATE_URL = f"{BASE_URL}/create.php"
 READ_URL = f"{BASE_URL}/index.php"
 
 VALID_USERNAME = "admin"
-VALID_PASSWORD = "nimda666!"  # Diambil dari README.md
+VALID_PASSWORD = "nimda666!"
 
-UNIQUE_SUFFIX = str(int(time.time()))
-TEST_CONTACT_NAME = f"Automation-{UNIQUE_SUFFIX}"
-TEST_CONTACT_PHONE = "081234567890"
-TEST_CONTACT_EMAIL = f"auto.{UNIQUE_SUFFIX}@example.com"
-UPDATED_PHONE = "089999888777"
+DEFAULT_TIMEOUT = 15
 
-DEFAULT_TIMEOUT = 10
+
+def _get_unique_contact_name():
+    return f"Auto-{uuid.uuid4().hex[:8]}"
 
 
 @pytest.fixture(scope="function")
@@ -50,7 +49,6 @@ def driver():
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-gpu")
 
-    # Gunakan WebDriver Manager untuk mengunduh driver secara otomatis
     driver_instance = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()), 
         options=chrome_options
@@ -69,6 +67,9 @@ def authenticated_driver(driver):
 def _perform_login(driver, username, password):
     driver.get(LOGIN_URL)
     wait = WebDriverWait(driver, DEFAULT_TIMEOUT)
+
+    if "index.php" in driver.current_url and "login.php" not in driver.current_url:
+        return
 
     username_field = wait.until(
         EC.presence_of_element_located((By.ID, "inputUsername"))
@@ -102,20 +103,19 @@ class TestDamnCRUDFunctionality:
     def test_TC001_create_contact_with_valid_data(self, authenticated_driver):
         driver = authenticated_driver
         wait = WebDriverWait(driver, DEFAULT_TIMEOUT)
+        contact_name = _get_unique_contact_name()
         _navigate_to_create(driver)
 
         name_field = wait.until(EC.presence_of_element_located((By.NAME, "name")))
-        name_field.send_keys(TEST_CONTACT_NAME)
-        driver.find_element(By.NAME, "phone").send_keys(TEST_CONTACT_PHONE)
-        driver.find_element(By.NAME, "email").send_keys(TEST_CONTACT_EMAIL)
-        
-        # Mengisi field title (sesuai database schema)
+        name_field.send_keys(contact_name)
+        driver.find_element(By.NAME, "phone").send_keys("081234567890")
+        driver.find_element(By.NAME, "email").send_keys(f"{contact_name.lower()}@example.com")
         driver.find_element(By.NAME, "title").send_keys("Testing")
 
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
 
-        assert TEST_CONTACT_NAME in driver.page_source
+        assert contact_name in driver.page_source
 
     def test_TC002_read_contact_list_displays_correctly(self, authenticated_driver):
         driver = authenticated_driver
@@ -126,12 +126,14 @@ class TestDamnCRUDFunctionality:
     def test_TC003_update_contact_phone_number(self, authenticated_driver):
         driver = authenticated_driver
         wait = WebDriverWait(driver, DEFAULT_TIMEOUT)
+        contact_name = _get_unique_contact_name()
+        updated_phone = "089999888777"
 
         # Setup data
         _navigate_to_create(driver)
-        wait.until(EC.presence_of_element_located((By.NAME, "name"))).send_keys(TEST_CONTACT_NAME)
-        driver.find_element(By.NAME, "phone").send_keys(TEST_CONTACT_PHONE)
-        driver.find_element(By.NAME, "email").send_keys(TEST_CONTACT_EMAIL)
+        wait.until(EC.presence_of_element_located((By.NAME, "name"))).send_keys(contact_name)
+        driver.find_element(By.NAME, "phone").send_keys("081234567890")
+        driver.find_element(By.NAME, "email").send_keys(f"{contact_name.lower()}@example.com")
         driver.find_element(By.NAME, "title").send_keys("Testing")
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
@@ -139,7 +141,7 @@ class TestDamnCRUDFunctionality:
         # Klik Edit
         edit_link = wait.until(
             EC.element_to_be_clickable(
-                (By.XPATH, f"//tr[contains(., '{TEST_CONTACT_NAME}')]//a[contains(@href, 'update.php')]")
+                (By.XPATH, f"//tr[contains(., '{contact_name}')]//a[contains(@href, 'update.php')]")
             )
         )
         edit_link.click()
@@ -147,21 +149,22 @@ class TestDamnCRUDFunctionality:
         # Update phone
         phone_field = wait.until(EC.presence_of_element_located((By.NAME, "phone")))
         phone_field.clear()
-        phone_field.send_keys(UPDATED_PHONE)
+        phone_field.send_keys(updated_phone)
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
 
-        assert UPDATED_PHONE in driver.page_source
+        assert updated_phone in driver.page_source
 
     def test_TC004_delete_contact_removes_from_list(self, authenticated_driver):
         driver = authenticated_driver
         wait = WebDriverWait(driver, DEFAULT_TIMEOUT)
+        contact_name = _get_unique_contact_name()
 
         # Setup data
         _navigate_to_create(driver)
-        wait.until(EC.presence_of_element_located((By.NAME, "name"))).send_keys(TEST_CONTACT_NAME)
-        driver.find_element(By.NAME, "phone").send_keys(TEST_CONTACT_PHONE)
-        driver.find_element(By.NAME, "email").send_keys(TEST_CONTACT_EMAIL)
+        wait.until(EC.presence_of_element_located((By.NAME, "name"))).send_keys(contact_name)
+        driver.find_element(By.NAME, "phone").send_keys("081234567890")
+        driver.find_element(By.NAME, "email").send_keys(f"{contact_name.lower()}@example.com")
         driver.find_element(By.NAME, "title").send_keys("Testing")
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
@@ -169,7 +172,7 @@ class TestDamnCRUDFunctionality:
         # Klik Delete
         delete_link = wait.until(
             EC.element_to_be_clickable(
-                (By.XPATH, f"//tr[contains(., '{TEST_CONTACT_NAME}')]//a[contains(@href, 'delete.php')]")
+                (By.XPATH, f"//tr[contains(., '{contact_name}')]//a[contains(@href, 'delete.php')]")
             )
         )
         delete_link.click()
@@ -182,7 +185,7 @@ class TestDamnCRUDFunctionality:
 
         wait.until(EC.staleness_of(delete_link))
         time.sleep(1)
-        assert TEST_CONTACT_NAME not in driver.page_source
+        assert contact_name not in driver.page_source
 
     def test_TC005_create_contact_fails_with_empty_name(self, authenticated_driver):
         driver = authenticated_driver
@@ -196,5 +199,4 @@ class TestDamnCRUDFunctionality:
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
 
         time.sleep(1)
-        # URL must remain create.php because validation prevented submission
         assert "create.php" in driver.current_url
