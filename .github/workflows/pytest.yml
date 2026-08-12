@@ -126,7 +126,7 @@ jobs:
       - name: "🔍 Verify Application Accessibility"
         run: |
           sleep 3
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost/login.php)
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost/DamnCRUD/login.php)
           echo "HTTP Status Code: $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 302 ]; then
             echo "❌ GAGAL: Aplikasi tidak dapat diakses. Status: $HTTP_STATUS"
@@ -136,17 +136,13 @@ jobs:
 
       - name: "🚀 Execute Pytest Suite (Parallel via pytest-xdist)"
         run: |
-          # Periksa apakah folder tests ada sebelum menjalankan pytest
-          if [ -d "tests" ]; then
-            pytest tests/ \
-              -n auto \
-              --timeout=60 \
-              --html=reports/test_report.html \
-              --self-contained-html \
-              --junitxml=reports/junit_report.xml \
-              -v \
-              --tb=short \
-              --color=yes
-          else
-            echo "Tidak ada folder tests, melewati langkah pengujian."
-          fi
+          # Jalankan pengujian secara paralel menggunakan pytest.py
+          pytest pytest.py \
+            -n auto \
+            --timeout=60 \
+            --html=reports/test_report.html \
+            --self-contained-html \
+            --junitxml=reports/junit_report.xml \
+            -v \
+            --tb=short \
+            --color=yes
