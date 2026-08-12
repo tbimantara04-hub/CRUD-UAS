@@ -114,6 +114,7 @@ class TestDamnCRUDFunctionality:
 
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
 
         assert contact_name in driver.page_source
 
@@ -137,6 +138,7 @@ class TestDamnCRUDFunctionality:
         driver.find_element(By.NAME, "title").send_keys("Testing")
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
 
         # Klik Edit
         edit_link = wait.until(
@@ -152,6 +154,7 @@ class TestDamnCRUDFunctionality:
         phone_field.send_keys(updated_phone)
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
 
         assert updated_phone in driver.page_source
 
@@ -168,6 +171,7 @@ class TestDamnCRUDFunctionality:
         driver.find_element(By.NAME, "title").send_keys("Testing")
         driver.find_element(By.XPATH, "//input[@type='submit'] | //button[@type='submit']").click()
         wait.until(EC.url_contains("index.php"))
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
 
         # Klik Delete
         delete_link = wait.until(

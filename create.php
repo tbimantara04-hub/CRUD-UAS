@@ -13,8 +13,8 @@ if (!isset($_SESSION['user'])) {
         $title = $_POST['title'];
         $created = date('Y-m-d H:i:s');
         // Insert new record into the contacts table
-        $stmt = $pdo->prepare('INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([NULL, $name, $email, $phone, $title, $created]);
+        $stmt = $pdo->prepare('INSERT INTO contacts (name, email, phone, title, created) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$name, $email, $phone, $title, $created]);
         header("location:index.php");
     }
     ?>
