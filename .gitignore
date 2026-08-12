@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+.pytest_cache/
+*.log
+reports/
+.github/workflows/pytest_report/
+*.pyc
+.env
+db_data/
